@@ -1,0 +1,346 @@
+
+#+TITLE: Emacs configuration
+#+OPTIONS: toc:4 h:4
+#+STARTUP: content
+
+* Table of contents                                                       :TOC:
+- [[#basic-settings][Basic settings]]
+  - [[#scrolling][Scrolling]]
+  - [[#indentation][Indentation]]
+- [[#package-management][Package management]]
+- [[#startup-message][Startup message]]
+- [[#theme][Theme]]
+- [[#packages][Packages]]
+  - [[#which-key][Which-key]]
+  - [[#general][General]]
+  - [[#auto-completion][Auto-completion]]
+  - [[#hydra][Hydra]]
+  - [[#evil-mode][Evil-mode]]
+  - [[#powerline][Powerline]]
+  - [[#ivy-mode][Ivy-mode]]
+  - [[#neotree][Neotree]]
+  - [[#smooth-scrolling][Smooth-scrolling]]
+- [[#buffers][Buffers]]
+- [[#files][Files]]
+- [[#org-mode][Org-mode]]
+  - [[#some-useful-notes-about-org-mode][Some useful notes about org-mode:]]
+  - [[#settings-and-configurations][Settings and configurations]]
+
+* Basic settings
+
+#+BEGIN_SRC emacs-lisp
+(setq delete-old-versions -1 )		; delete excess backup versions silently
+(setq version-control t )		    ; use version control
+(setq vc-make-backup-files t )		; make backups file even when in version controlled dir
+(setq backup-directory-alist `(("." . "~/.emacs.d/backups")) ) ; which directory to put backups file
+(setq vc-follow-symlinks t )	    ; don't ask for confirmation when opening symlinked file
+(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/auto-save-list/" t)) ) ;transform backups file name
+(setq inhibit-startup-screen t )	; inhibit useless and old-school startup screen
+(setq ring-bell-function 'ignore )	; silent bell when you make a mistake
+(setq coding-system-for-read 'utf-8 )	; use utf-8 by default
+(setq coding-system-for-write 'utf-8 )
+(setq sentence-end-double-space nil)	; sentence SHOULD end with only a point.
+(setq default-fill-column 80)		; toggle wrapping text at the 80th character
+(setq initial-scratch-message "My config was loaded") ; print a default message in the empty scratch buffer opened at startup
+#+END_SRC
+  
+Highlight current line
+#+BEGIN_SRC emacs-lisp
+(global-hl-line-mode 1)
+#+END_SRC
+
+** Scrolling
+
+Only scroll by one line when you hit the end of the buffer
+#+BEGIN_SRC emacs-lisp
+(setq scroll-step 1)
+#+END_SRC
+
+Prevent cursor from hitting top/bottom of window
+#+BEGIN_SRC emacs-lisp
+  (setq scroll-margin 8)
+#+END_SRC
+
+** Indentation
+
+By default, use two spaces for tab size
+#+BEGIN_SRC emacs-lisp
+(setq standard-indent 2)
+#+END_SRC
+   
+Never use the tab character
+#+BEGIN_SRC emacs-lisp
+(setq-default indent-tabs-mode nil) 
+#+END_SRC
+
+* Package management
+
+#+BEGIN_SRC emacs-lisp
+(require 'package)
+#+END_SRC
+
+
+#+BEGIN_SRC emacs-lisp
+(setq package-enable-at-startup nil) ; tells emacs not to load any packages before starting up
+;; the following lines tell emacs where on the internet to look up
+;; for new packages.
+(setq package-archives '(("melpa"     . "https://melpa.org/packages/")
+                         ("org"       . "http://orgmode.org/elpa/")
+                         ("gnu"       . "http://elpa.gnu.org/packages/")
+                         ("marmalade" . "http://marmalade-repo.org/packages/")))
+(package-initialize) 
+#+END_SRC
+
+We want make use-package is installed and up-to-date before anything else.
+An article about use-package at Mastering Emacs: [[https://www.masteringemacs.org/article/spotlight-use-package-a-declarative-configuration-tool]]
+[[https://github.com/jwiegley/use-package/][github:jwiegley/use-package]]
+
+#+BEGIN_SRC emacs-lisp
+;; Bootstrap `use-package'
+(unless (package-installed-p 'use-package) ; unless it is already installed
+  (package-refresh-contents) ; update packages archive
+  (package-install 'use-package)) ; and install the most recent version of use-package
+
+(require 'use-package)
+(setq use-package-always-ensure t)  ;; :ensure t means any use-package call installs if necessary
+#+END_SRC
+
+We would like to be able to get some packages from source.  For this, quelpa seems like the way to:
+#+BEGIN_SRC emacs-lisp
+(use-package quelpa)
+#+END_SRC
+
+and then the following adds the =:quelpa= option to =use-package=
+
+#+BEGIN_SRC emacs-lisp
+(use-package quelpa-use-package)
+#+END_SRC
+
+* Startup message
+  
+* Theme
+#+BEGIN_SRC emacs-lisp
+(load-theme 'leuven)
+#+END_SRC
+
+* Packages
+  
+Here we configure most of the packages.  Evil-related stuff is under [[Evil-mode][Evil-mode]] and Org stuff is at [[Org-mode][Org-mode]]
+  
+Better-defaults is the defaults package that was included with spacemacs, so I also included it here as a first step.
+The documentation is poor, so I'm not really sure what all it does... maybe I'll disable it at some point.
+[[https://github.com/technomancy/better-defaults][github:technomancy/better-defaults]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package better-defaults)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package restart-emacs
+  :config
+  (general-define-key 
+    :states '(normal visual insert emacs)
+    :prefix "SPC"
+    :non-normal-prefix "C-SPC"
+    "q"  '(:ignore t :which-key "quit")
+    "qq" 'kill-emacs
+    "qr" 'restart-emacs))
+#+END_SRC
+
+** Which-key
+  
+[[https://github.com/justbur/emacs-which-key][github:justbur/emacs-which-key]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package which-key 
+  :config (which-key-mode))
+#+END_SRC
+
+** General 
+
+General is a package for keybindings: [[https://github.com/noctuid/general.el][github:noctuid/general.el]]
+Right now I don't have any configuration directly for general, but I'm using general-define-key all over and which-key helps remind me what my keybindings were.
+
+#+BEGIN_SRC emacs-lisp
+(use-package general)
+#+END_SRC
+
+** Auto-completion
+
+Let's use company for auto-completion: [[https://github.com/company-mode/company-mode][github:company-mode/company-mode]]
+#+BEGIN_SRC emacs-lisp
+(use-package company
+  :hook (after-init . global-company-mode))
+#+END_SRC
+
+** Hydra
+
+#+BEGIN_SRC emacs-lisp
+(use-package hydra)
+#+END_SRC
+
+** Evil-mode
+   
+[[https://github.com/emacs-evil/evil][github:emacs-evil/evil]]
+
+Install and load evil
+#+BEGIN_SRC emacs-lisp
+(use-package evil 
+  :config (evil-mode 1))
+#+END_SRC
+
+*** Evil-surround
+
+[[https://github.com/emacs-evil/evil-surround][github:emacs-evil/evil-surround]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-surround
+  :config
+  (global-evil-surround-mode 1))
+#+END_SRC
+
+*** Evil-matchit
+    
+[[https://github.com/redguardtoo/evil-matchit][github:redguardtoo/evil-matchit]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-matchit
+  :config 
+  (global-evil-matchit-mode 1))
+#+END_SRC
+
+*** Evil-nerd-commenter
+
+[[https://github.com/redguardtoo/evil-nerd-commenter][redguardtoo/evil-nerd-commenter]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package evil-nerd-commenter
+  :config
+  ;; (evilnc-default-hotkeys)
+  (general-define-key 
+    :states '(normal visual insert emacs)
+    :prefix "SPC"
+    :non-normal-prefix "C-SPC"
+    "c"  '(:ignore t :which-key "comments")
+    "cl" 'evilnc-comment-or-uncomment-lines))
+#+END_SRC
+
+** Powerline
+
+Powerline is needed by the configuration library spaceline, so let's see if we can get away with just requiring that...
+[[https://github.com/TheBB/spaceline][github:TheBB/spaceline]]
+[[https://github.com/milkypostman/powerline][github:milkypostman/powerline]]
+We may also want [[https://github.com/raugturi/powerline-evil][github:raugturi/powerline-evil]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package spaceline
+  :ensure t
+  :config
+    ;; (require 'powerline)
+    (require 'spaceline-config)
+    (spaceline-spacemacs-theme))
+#+END_SRC
+
+** Ivy-mode
+   
+Generic completion framework
+[[http://oremacs.com/swiper/][Swiper manual]]
+[[https://github.com/abo-abo/swiper][github:abo-abo/swiper]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :ensure t
+  :pin gnu
+  :config 
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-initial-inputs-alist nil)
+  (setq ivy-count-format "(%d/%d) "))
+  (ivy-mode 1)
+
+(use-package ivy-hydra
+  :after (ivy hydra))
+#+END_SRC
+  
+#+BEGIN_SRC emacs-lisp
+(general-define-key
+  ;; replace default keybindings
+  "C-s" 'swiper             ; search for string in current buffer
+  "M-x" 'counsel-M-x        ; replace default M-x with ivy backend
+  )
+#+END_SRC
+
+** Neotree
+
+[[https://github.com/jaypei/emacs-neotree][github:/jaypel/emacs-neotree]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package neotree
+  :ensure t
+  :init 
+  (add-to-list 'load-path "~/Dropbox")
+  :config
+  (general-define-key 
+    :states '(normal visual insert emacs)
+    :prefix "SPC"
+    :non-normal-prefix "C-SPC"
+    "a"  '(:ignore t :which-key "apps")
+    "an" 'neotree-toggle))
+  ;; (global-set-key [f8] 'neotree-toggle))
+#+END_SRC
+
+** Smooth-scrolling
+   
+[[https://github.com/aspiers/smooth-scrolling]]
+
+#+BEGIN_SRC emacs-lisp
+(use-package smooth-scrolling
+  :config
+  (smooth-scrolling-mode 1))
+#+END_SRC
+
+* Buffers
+
+#+BEGIN_SRC emacs-lisp
+(general-define-key
+  :states '(normal visual insert emacs)
+  :prefix "SPC"
+  :non-normal-prefix "C-SPC"
+  "b"  '(:ignore t :which-key "buffers")
+  "bb" 'ivy-switch-buffer
+  "bn" 'next-buffer
+  "bp" 'previous-buffer
+  "bd" 'kill-this-buffer
+)
+#+END_SRC
+  
+* Files
+
+#+BEGIN_SRC emacs-lisp
+(general-define-key
+  :states '(normal visual insert emacs)
+  :prefix "SPC"
+  :non-normal-prefix "C-SPC"
+  "f"  '(:ignore t :which-key "buffers")
+  "ff" 'counsel-find-file
+)
+#+END_SRC
+
+* Org-mode
+** Some useful notes about org-mode:
+Templates are created with < followed by the template selector.  Those selectors are stored in ='org-structure-template-alist=.  (To get the value of a variable, use =C-h v <var>=)
+
+** Settings and configurations
+
+Get syntax highlighting in source blocks
+#+BEGIN_SRC emacs-lisp
+(setq org-src-fontify-natively t) 
+#+END_SRC
+
+*** toc-org
+
+Get toc in org-mode
+
+#+BEGIN_SRC emacs-lisp
+(use-package toc-org
+  :hook (org-mode . toc-org-enable))
+#+END_SRC

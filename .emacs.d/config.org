@@ -17,7 +17,9 @@
   - [[#hydra][Hydra]]
   - [[#evil-mode][Evil-mode]]
   - [[#powerline][Powerline]]
+  - [[#avy][Avy]]
   - [[#ivy-mode][Ivy-mode]]
+  - [[#perspective][Perspective]]
   - [[#neotree][Neotree]]
   - [[#smooth-scrolling][Smooth-scrolling]]
 - [[#buffers][Buffers]]
@@ -25,8 +27,16 @@
 - [[#org-mode][Org-mode]]
   - [[#some-useful-notes-about-org-mode][Some useful notes about org-mode:]]
   - [[#settings-and-configurations][Settings and configurations]]
+- [[#git][Git]]
+  - [[#magit][Magit]]
+  - [[#git-gutter][Git-gutter]]
 
 * Basic settings
+
+Save state between sessions
+#+BEGIN_SRC emacs-lisp
+(desktop-save-mode 1)
+#+END_SRC  
 
 #+BEGIN_SRC emacs-lisp
 (setq delete-old-versions -1 )		; delete excess backup versions silently
@@ -119,6 +129,27 @@ and then the following adds the =:quelpa= option to =use-package=
 * Startup message
   
 * Theme
+  
+Get some extra themes that I might want to use...
+
+[[https://github.com/cpaulik/emacs-material-theme]]
+#+BEGIN_SRC emacs-lisp
+(use-package material-theme
+  :disabled)
+#+END_SRC
+
+[[https://github.com/bbatsov/solarized-emacs]]
+#+BEGIN_SRC emacs-lisp
+(use-package solarized-theme
+  :disabled)
+#+END_SRC
+
+[[https://github.com/Greduan/emacs-theme-gruvbox]]
+#+BEGIN_SRC emacs-lisp
+(use-package gruvbox-theme
+  :disabled)
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
 (load-theme 'leuven)
 #+END_SRC
@@ -241,6 +272,13 @@ We may also want [[https://github.com/raugturi/powerline-evil][github:raugturi/p
     (spaceline-spacemacs-theme))
 #+END_SRC
 
+** Avy
+ 
+[[https://github.com/abo-abo/avy]]
+#+BEGIN_SRC emacs-lisp
+(use-package avy)
+#+END_SRC
+
 ** Ivy-mode
    
 Generic completion framework
@@ -249,13 +287,12 @@ Generic completion framework
 
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
-  :ensure t
-  :pin gnu
+  :quelpa (ivy :fetcher github :repo "abo-abo/swiper")
   :config 
   (setq ivy-use-virtual-buffers t)
   (setq ivy-initial-inputs-alist nil)
-  (setq ivy-count-format "(%d/%d) "))
-  (ivy-mode 1)
+  (setq ivy-count-format "(%d/%d) ")
+  (ivy-mode 1))
 
 (use-package ivy-hydra
   :after (ivy hydra))
@@ -267,6 +304,13 @@ Generic completion framework
   "C-s" 'swiper             ; search for string in current buffer
   "M-x" 'counsel-M-x        ; replace default M-x with ivy backend
   )
+#+END_SRC
+
+** Perspective
+
+[[https://github.com/nex3/perspective-el]]
+#+BEGIN_SRC emacs-lisp
+(use-package perspective)
 #+END_SRC
 
 ** Neotree
@@ -336,6 +380,13 @@ Get syntax highlighting in source blocks
 (setq org-src-fontify-natively t) 
 #+END_SRC
 
+*** org-bullets
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode))
+#+END_SRC
+
 *** toc-org
 
 Get toc in org-mode
@@ -343,4 +394,21 @@ Get toc in org-mode
 #+BEGIN_SRC emacs-lisp
 (use-package toc-org
   :hook (org-mode . toc-org-enable))
+#+END_SRC
+
+* Git
+
+** Magit
+
+#+BEGIN_SRC emacs-lisp
+(use-package magit)
+(use-package evil-magit)
+#+END_SRC
+
+** Git-gutter
+
+#+BEGIN_SRC emacs-lisp
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
 #+END_SRC
